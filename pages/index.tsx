@@ -1,86 +1,71 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
+import { useState } from "react";
+import Loading from "../components/Loading";
+import { NftCard } from "../components/NftCard";
+import { NFT } from "../types";
 
-const Home: NextPage = () => {
+const Home = () => {
+  const [wallet, setWalletAddress] = useState(
+    "0x60e04615FB0155B92015412d48EB64B80F6A7e35"
+  );
+  const [NFTs, setNFTs] = useState<NFT[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const fetchNFTs = async () => {
+    let nfts;
+    console.log("fetching nfts");
+    setNFTs([]);
+    setLoading(true);
+
+    const api_key = "4UeStsafXvjSmpynjL8U9wQ1fdWDQz5J";
+    const baseURL = `https://eth-mainnet.alchemyapi.io/v2/${api_key}/getNFTs/`;
+    var requestOptions = {
+      method: "GET",
+    };
+    const fetchURL = `${baseURL}?owner=${wallet}`;
+
+    try {
+      nfts = await fetch(fetchURL, requestOptions).then((data) => data.json());
+    } catch (e) {
+      console.log("Error", e);
+    }
+
+    if (nfts) {
+      setNFTs(nfts.ownedNfts);
+    }
+    setLoading(false);
+  };
+
+  console.log(NFTs);
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-2">
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className="flex w-full flex-1 flex-col items-center justify-center px-20 text-center">
-        <h1 className="text-6xl font-bold">
-          Welcome to{' '}
-          <a className="text-blue-600" href="https://nextjs.org">
-            Next.js!
-          </a>
-        </h1>
-
-        <p className="mt-3 text-2xl">
-          Get started by editing{' '}
-          <code className="rounded-md bg-gray-100 p-3 font-mono text-lg">
-            pages/index.tsx
-          </code>
-        </p>
-
-        <div className="mt-6 flex max-w-4xl flex-wrap items-center justify-around sm:w-full">
-          <a
-            href="https://nextjs.org/docs"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Documentation &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Find in-depth information about Next.js features and its API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Learn &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Learn about Next.js in an interactive course with quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Examples &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Discover and deploy boilerplate example Next.js projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Deploy &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className="flex h-24 w-full items-center justify-center border-t">
-        <a
-          className="flex items-center justify-center gap-2"
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+    <div className="flex flex-col items-center justify-center py-8 gap-y-3">
+      <div className="flex flex-col w-full justify-center items-center gap-y-2">
+        <input
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-1/5 p-2.5"
+          type={"text"}
+          value={wallet}
+          onChange={(e) => setWalletAddress(e.target.value)}
+          placeholder="Wallet address or ENS"
+        />
+        <button
+          className={
+            "disabled:bg-slate-500 text-white bg-blue-400 px-4 py-2 rounded-lg w-1/5"
+          }
+          onClick={fetchNFTs}
         >
-          Powered by{' '}
-          <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-        </a>
-      </footer>
-    </div>
-  )
-}
+          Get NFTs
+        </button>
 
-export default Home
+        <div className="flex flex-wrap gap-y-3 mt-4 w-5/6 gap-x-2 justify-center">
+          {loading ? (
+            <Loading />
+          ) : (
+            NFTs.map((nft, i) => <NftCard key={i} nft={nft} />)
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Home;
